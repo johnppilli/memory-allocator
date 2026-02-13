@@ -1,3 +1,6 @@
+//this main.c says "let me use these files and test them"
+
+
 #include <stdio.h> //imports the standard I/O library 
 #include <stdbool.h> //allows you to work with bool
 
