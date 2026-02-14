@@ -10,6 +10,19 @@ char memory[POOL_SIZE];
 int main() { //entry point 
     printf("memory allocator\n");
     return 0; //should tell the OS that everything is fine
+
+    void* a = my_malloc(32); //asks for 32 bytes
+    void* b = my_malloc(64); //ask for 64 more bytes
+
+    printf("a: %p\n, a"); //print teh address
+    printf("b: %p\n, b"); //should be a different address
+
+    my_free(a); //free the first one
+
+    void* c = my_malloc(16); // ask for 16 byres - should reuse a's old spot
+    printf("c: %p\n", c);
+
+    return 0;
 }
 
 
