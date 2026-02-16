@@ -12,6 +12,9 @@ struct Block {
     bool is_free; //1 = free, 0 = taken 
 };
 
+void* my_malloc(size_t size);
+void my_free(void* ptr);
+
 
 int main() { //entry point 
     printf("memory allocator\n");
@@ -33,8 +36,7 @@ int main() { //entry point
 
 
 void* my_malloc(size_t size) { //my_malloc = function that finds a free spot, and then returns to tell you where   
-    
-    void* current = memory; 
+   void* current = memory 
 
 
 }  //without the *, C wouldn't give back an address and it woudl return nothing
