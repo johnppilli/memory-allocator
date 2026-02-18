@@ -36,18 +36,34 @@ int main() { //entry point
 
 
 void* my_malloc(size_t size) { //my_malloc = function that finds a free spot, and then returns to tell you where   
-   void* current = memory //this sets your pointer to the very beginning of the memory pool
+   void* current = memory; //this sets your pointer to the very beginning of the memory pool
    
-    while (current < memory + POOL_SIZE) //keep going as long as I haven't walked past the end of the pool
+    while (current < memory + POOL_SIZE){ //keep going as long as I haven't walked past the end of the pool
            //current: where you are right now in the pool (starts at beginning)
            //memory + POOL_SIZE: wall at the end
 
-    struct Block* block = (struct Block*)current; //layout goes second part then first
-    //struct block current --> treats the address in current as if it points to a Block struct
-    //struct block block --> stores that in a variable called block
-    //in other words, its like looking at a spot on the hallway floor and saying "I know there's a sign here that tells me the room size and whether it's free" - the cast is you putting on glasses on so you can actually read the sign:w
-    
+        struct Block* block = (struct Block*)current; //layout goes second part then first
+        //struct block current --> treats the address in current as if it points to a Block struct
+        //struct block block --> stores that in a variable called block
+        //in other words, its like looking at a spot on the hallway floor and saying "I know there's a sign here that tells me the room size and whether it's free" - the cast is you putting on glasses on so you can actually read the sign:w
+   
+        if (block->is_free && block->size >= size) {
+            //checks if block is avaiable, and is it big enough for what we're requesting
 
+            //when you find a block that's big enough, you do these two things
+            block->is_free = false; //mark it as taken 
+
+            return (void*)((char*)current + sizeof(struct Block)); //return a pointer past the header
+        }
+        
+        current = (char*)current + sizeof(struct Block) + block->size;
+    }
+    
+    //this is where you handle the loop finishign wihtout finding a free block
+    struct Block* block = (struct Block*)current; //no free block found in the loop, so carve out a new one at the end
+    block->size = size; //set the size of this new block to what was requested
+    block->is_free = false; //mark it as taken
+    return (void*)((char*)current + sizeof(struct Block)); //return the usable memory just past the header  
 
 }  //without the *, C wouldn't give back an address and it woudl return nothing
 
