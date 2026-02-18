@@ -79,5 +79,7 @@ void* my_malloc(size_t size) {
 // ==================== MY_FREE ====================
 
 void my_free(void* ptr) {
-    //Code for it goes here
+        
+        struct Block* block = (struct Block*)((char*)ptr - sizeof(struct Block)); //back up from the usable memory to where the header lives
+        block->is_free = true; // mark the room as vacant again
 }
