@@ -38,6 +38,14 @@ void* my_malloc(size_t size) {
         current = (char*)current + sizeof(struct Block) + block->size;
 
     } //end of while loop
+   
+
+
+    //adding a checker to see if there's enough room before you carve out a new block 
+    if (current + sizeof(struct Block) + size > memory + POOL_SIZE) {
+        return NULL;
+    }
+
 
     // no free block found, carve out a new one here
     struct Block* block = (struct Block*)current;
