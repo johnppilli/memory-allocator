@@ -30,6 +30,16 @@ void* my_malloc(size_t size) {
 
         // is this block free AND big enough for what we're requesting?
         if (block->is_free && block->size >= size) {
+            
+            if (block->size >= size + sizeof(struct Block) + 1){ //can we evn spit this block
+                char* leftover_start = current + sizeof(struct Block) + size; //where the wall goes (right after our room)
+                struct Block* leftover = (struct Block*)leftover_start; //put a new door sign on teh second room
+                leftover->size = block->size - size - sizeof(struct Block); //second room's size = original - what we took - the new sign
+                leftover->is_free = true;  //mark second room as vacant 
+                block->size = size; //shrink the first room to just what we need 
+   
+            }
+
             block->is_free = false;  //mark it as taken
             return (void*)((char*)current + sizeof(struct Block));  //return usable memory past the header
         }
@@ -60,4 +70,26 @@ void* my_malloc(size_t size) {
 void my_free(void* ptr) {
     struct Block* block = (struct Block*)((char*)ptr - sizeof(struct Block)); //back up from the usable memory to where the header lives
     block->is_free = true; // mark the room as vacant again
+
+    char* current = memory; //start at the beginning
+    while (current < memory + POOL_SIZE) { //then walk forward until the end of the pool
+        struct Block* block = (struct Block*)current; //casts the current position to a block so you can read the header
+        
+        if (block->size == 0) {
+            break;
+        }
+
+        if (block->is_free) {
+            char* next_start = current + sizeof(struct Block) + block->size;
+            struct Block* next = (struct Block*)next_start;
+            
+            if (next->is_free) {
+                block->size += sizeof(struct Block) + next->size;
+                continue; //check again - there might be MORE free blocks to merge
+            }
+        }
+
+        current = current + sizeof(struct Block) + block->size;
+
+    }
 }
