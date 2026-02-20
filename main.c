@@ -1,44 +1,37 @@
-//this main.c says "let me use these files and test them"
-
-#include <stdio.h>       //imports the standard I/O library
-#include "allocator.h"   //gives us access to my_malloc and my_free
-
-
-// ==================== MAIN ====================
+#include <stdio.h>
+#include "allocator.h"
 
 int main() {
     printf("Memory Allocator\n");
 
-// ============ TEST 1 ================
+    // Test 1: Splitting — free a 64-byte block, then allocate two 16-byte blocks from it
     printf("=== Test 1: Splitting ===\n");
-    void* a = my_malloc(64); //allocate 64 bytes
+    void* a = my_malloc(64);
     printf("a: %p\n", a);
 
-    my_free(a); //free it - now there's a 64-byte free block
+    my_free(a);
 
-    void* b = my_malloc(16); //ask for only 16 - should split the 64 into 16 + leftover
-    void* c = my_malloc(16); //should use the leftover from the split
+    void* b = my_malloc(16);
+    void* c = my_malloc(16);
     printf("b: %p\n", b);
-    printf("c: %p\n", c); //b and c should be different but close together
+    printf("c: %p\n", c);
 
-
-// ============ Test 2 ===============
+    // Test 2: Coalescing — free two neighboring blocks, then allocate one bigger than either
     printf("=== Test 2: Coalescing ===\n");
     void* d = my_malloc(32);
     void* e = my_malloc(32);
     printf("d: %p\n", d);
     printf("e: %p\n", e);
-   
-    my_free(d); //free both neighbors
-    my_free(e); //coalescing should merge them into one 64+ byte block
 
-    void* f = my_malloc(60); //bigger than either alone - should work because they merged
-    printf("f: %p\n", f); //shoudl reuse d's old address
+    my_free(d);
+    my_free(e);
 
+    void* f = my_malloc(60);
+    printf("f: %p\n", f);
 
-// ============ TEST 3 ================
+    // Test 3: Error handling — request more than the pool can hold
     printf("=== Test 3: Error handling ===\n");
-    void* g = my_malloc(2000); //bigger than the whole pool
+    void* g = my_malloc(2000);
     if (g == NULL) {
         printf("g: allocation failed (no space)\n");
     }
