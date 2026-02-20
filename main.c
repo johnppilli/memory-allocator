@@ -7,18 +7,35 @@
 // ==================== MAIN ====================
 
 int main() {
-    printf("memory allocator\n");
+    printf("Memory Allocator\n");
 
-    void* a = my_malloc(32);  //asks for 32 bytes
-    void* b = my_malloc(64);  //ask for 64 more bytes
+// ============ TEST 1 ================
+    printf("=== Test 1: Splitting ===\n");
+    void* a = my_malloc(64); //allocate 64 bytes
+    printf("a: %p\n", a);
 
-    printf("a: %p\n", a);  //print the address
-    printf("b: %p\n", b);  //should be a different address
+    my_free(a); //free it - now there's a 64-byte free block
 
-    my_free(a);  //free the first one
+    void* b = my_malloc(16); //ask for only 16 - should split the 64 into 16 + leftover
+    void* c - my_malloc(16); //should use the leftover from the split
+    printf("b: %p\n", b);
+    printf("c: %p\n", c); //b and c should be different but close together
 
-    void* c = my_malloc(16);  //ask for 16 bytes - should reuse a's old spot
-    printf("c: %p\n", c);
+
+// ============ Test 2 ===============
+    printf("=== Test 2: Coalescing ===\n");
+    void* d = my_malloc(32);
+    void* e = my_malloc(32);
+    printf("d: %p\n", d);
+    printf("e: %p\n", e);
+   
+    my_free(d); //free both neighbors
+    my_free(e); //coalescing should merge them into one 64+ byte block
+
+    void* f = my_malloc(60); //bigger than either alone - should work because they merged
+    printf("f: %p\n", f); //shoudl reuse d's old address
+
+
 
     return 0;
 }
