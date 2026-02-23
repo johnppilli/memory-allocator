@@ -6,29 +6,40 @@ char memory[POOL_SIZE];
 
 void* my_malloc(size_t size) {
     char* current = memory;
+    struct Block* best_block = NULL;
+    char* best_current = NULL;
+
 
     while (current < memory + POOL_SIZE) {
         struct Block* block = (struct Block*)current;
-
+        
+        // best-fit: smallest free block that fits
         if (block->size == 0) break;
-
-        if (block->is_free && block->size >= size) {
-
-            // split block if there's room for a leftover
-            if (block->size >= size + sizeof(struct Block) + 1) {
-                char* leftover_start = current + sizeof(struct Block) + size;
-                struct Block* leftover = (struct Block*)leftover_start;
-                leftover->size = block->size - size - sizeof(struct Block);
-                leftover->is_free = true;
-                block->size = size;
+            if (block->is_free && block->size >= size) {
+                if (best_block == NULL || block->size < best_block->size) {
+                    best_block = block;
+                    best_current = current; 
+                }
             }
 
-            block->is_free = false;
-            return (void*)((char*)current + sizeof(struct Block));
-        }
 
         current = (char*)current + sizeof(struct Block) + block->size;
     }
+   
+    //best-fit found a match - split if possible, then claim it
+    if (best_block != NULL) {
+        //split if there's room for a leftover
+        if (best_block->size >= size + sizeof(struct Block) + 1) {
+            char* leftover_start = best_current + sizeof(struct Block) + size;
+            struct Block* leftover = (struct Block*)leftover_start;
+            leftover->size = best_block->size - size - sizeof(struct Block);
+            leftover->is_free = true;
+            best_block->size = size;
+        }
+        best_block->is_free = false;
+        return (void*)((char*)best_current + sizeof(struct Block));
+    }
+
 
     if (current + sizeof(struct Block) + size > memory + POOL_SIZE) {
         return NULL;
