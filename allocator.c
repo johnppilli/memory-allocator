@@ -545,6 +545,20 @@ size_t heap_usable_size(const void *ptr)
 
 /* =============================================================== realloc = */
 
+/* Keep the live-byte accounting straight when a block is resized in place. */
+static void account_resize(size_t old_req, size_t new_req)
+{
+    stats.live_bytes = stats.live_bytes - old_req + new_req;
+
+    if (new_req > old_req) {
+        stats.total_allocated += new_req - old_req;
+        if (stats.live_bytes > stats.peak_bytes)
+            stats.peak_bytes = stats.live_bytes;
+    } else {
+        stats.total_freed += old_req - new_req;
+    }
+}
+
 void *heap_realloc(void *ptr, size_t n, const char *file, int line)
 {
     ensure_init();
@@ -577,6 +591,7 @@ void *heap_realloc(void *ptr, size_t n, const char *file, int line)
             arm_guard(b);          /* b->size moved, so the canary moved */
             coalesce(rest);
         }
+        account_resize(old_req, n);
         return ptr;
     }
 
@@ -597,10 +612,7 @@ void *heap_realloc(void *ptr, size_t n, const char *file, int line)
         if (rest)
             coalesce(rest);
 
-        stats.live_bytes += n - old_req;
-        stats.total_allocated += n - old_req;
-        if (stats.live_bytes > stats.peak_bytes)
-            stats.peak_bytes = stats.live_bytes;
+        account_resize(old_req, n);
         stats.in_place_reallocs++;
         return ptr;
     }
@@ -704,7 +716,7 @@ void heap_map(FILE *out, int width)
             fputs(used ? C_USED : C_FREE, out);
             in_run = used;
         }
-        fputc(used ? (char)('a' + b->seq % 26) : '.', out);
+        fputc(used ? (char)('a' + (b->seq - 1) % 26) : '.', out);
     }
     if (color)
         fputs(C_RESET, out);
@@ -735,7 +747,7 @@ void heap_dump(FILE *out)
         else
             fprintf(out, "  %-4d %-8zu %-8zu %-8zu %-6zu %-6s %c  %s:%u\n",
                     i, off, span, b->size, b->req_size, "used",
-                    (char)('a' + b->seq % 26), basename_of(b->file), b->line);
+                    (char)('a' + (b->seq - 1) % 26), basename_of(b->file), b->line);
     }
 }
 

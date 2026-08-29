@@ -246,6 +246,29 @@ static void test_realloc_shrink(void)
     CHECK(heap_check());
 }
 
+static void test_realloc_accounting(void)
+{
+    begin("realloc keeps live_bytes honest", 8192);
+
+    void *p = my_malloc(100);
+    CHECK(heap_stats().live_bytes == 100);
+
+    p = my_realloc(p, 1000);                   /* grows, probably in place */
+    CHECK(heap_stats().live_bytes == 1000);
+
+    p = my_realloc(p, 40);                     /* shrinks in place */
+    CHECK(heap_stats().live_bytes == 40);
+
+    void *wall = my_malloc(64);
+    p = my_realloc(p, 4000);                   /* forced to move */
+    CHECK(heap_stats().live_bytes == 4000 + 64);   /* wall is still live */
+
+    my_free(p);
+    my_free(wall);
+    CHECK(heap_stats().live_bytes == 0);
+    CHECK(heap_check());
+}
+
 static void test_realloc_edges(void)
 {
     begin("realloc edge cases", 8192);
@@ -459,6 +482,7 @@ int main(void)
     test_realloc_grow_in_place();
     test_realloc_moves_when_blocked();
     test_realloc_shrink();
+    test_realloc_accounting();
     test_realloc_edges();
     test_malloc_zero_and_free_null();
     test_double_free_detected();
