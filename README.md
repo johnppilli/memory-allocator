@@ -1,35 +1,23 @@
 # Memory Allocator
 
-A `malloc`/`free` implementation written from scratch in C — best-fit allocation,
-block splitting, and coalescing over a fixed memory pool.
+A `malloc`/`free` implementation in C: best-fit allocation, block splitting, and coalescing over a fixed 1 KB pool.
 
-## Build
+## Build and run
 
 ```bash
 make
-```
-
-## Run
-
-```bash
 ./allocator
 ```
 
-This runs three built-in test cases and prints the results:
+This runs three test cases and prints the addresses it hands out:
 
-- **Splitting** — frees a 64-byte block, then allocates two 16-byte blocks from it
-- **Coalescing** — frees two neighboring 32-byte blocks, then allocates one 60-byte
-  block that only fits if they were merged back together
-- **Error handling** — requests more memory than the pool holds, and confirms it
-  fails cleanly instead of crashing
+1. Splitting: free a 64-byte block, then allocate two 16-byte blocks from it
+2. Coalescing: free two neighboring 32-byte blocks, then allocate a 60-byte block that only fits if they were merged
+3. Error handling: request more than the pool holds and check that it returns NULL
 
-## Clean
-
-```bash
-make clean
-```
+`make clean` removes the binary.
 
 ## Files
 
-- `allocator.c` / `allocator.h` — the allocator itself (`my_malloc`, `my_free`)
-- `main.c` — test cases exercising splitting, coalescing, and error handling
+- `allocator.c`, `allocator.h`: the allocator (`my_malloc`, `my_free`)
+- `main.c`: test cases
